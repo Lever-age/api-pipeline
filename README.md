@@ -69,6 +69,12 @@ wget ftp://ftp.phila-records.com/Year-to-Date%20Transaction%20Files/2017%20YTD/E
 import.py
 ```
 
+## Troubleshooting
+This project uses Python 3. If you're running both 2 and 3, you need to make sure pip installs the Python 3 libraries. Linux command:
+
+```
+sudo python3 -m pip install -r requirements.txt
+```
 
 ## Errors / Bugs
 
