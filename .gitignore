@@ -104,3 +104,4 @@ ENV/
 # Leverage Additions 
 .DS_Store
 app_config.py
+Explorer.Transactions.*.YTD.txt
