@@ -13,6 +13,7 @@
   + Fedora 26/CentOS 7: `mariadb-devel` package
   + OpenSUSE Leap 42.3: `libmysqlclient-devel` package
   + OS X Sierra: `mysql` homebrew formula
+* You will need to set up [libpostal](https://github.com/openvenues/libpostal)
 
 **Install app requirements**
 
