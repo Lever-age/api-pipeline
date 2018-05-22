@@ -93,4 +93,4 @@ Report it here: https://github.com/Lever-age/api-pipeline/issues
 
 Inspired by Illinois Sunshine.
 
-Copyright (c) 2017 Code for Philly
+Copyright (c) 2018 Code for Philly
