@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.7.19, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.22, for Linux (x86_64)
 --
 -- Host: localhost    Database: leverage_philly
 -- ------------------------------------------------------
--- Server version	5.7.19-0ubuntu0.16.04.1
+-- Server version	5.7.22-0ubuntu18.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -27,13 +27,15 @@ CREATE TABLE `candidacy` (
   `candidate_id` int(11) NOT NULL,
   `race_id` int(11) NOT NULL,
   `party_id` tinyint(4) NOT NULL,
+  `candidacy_order` int(11) NOT NULL,
+  `slug` varchar(64) NOT NULL,
   `candidacy_type` enum('incumbent','challenger') NOT NULL DEFAULT 'challenger',
   `outcome` enum('won','lost','upcoming') NOT NULL DEFAULT 'upcoming',
   PRIMARY KEY (`id`),
   KEY `candidate_id` (`candidate_id`),
   KEY `race_id` (`race_id`),
   KEY `candidacy_type` (`candidacy_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -59,7 +61,7 @@ CREATE TABLE `candidate` (
   `candidate_order` int(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `fec_id` (`fec_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,7 +75,7 @@ CREATE TABLE `candidate_committees` (
   `candidate_id` int(11) NOT NULL,
   `committee_id` int(11) NOT NULL,
   PRIMARY KEY (`candidate_id`,`committee_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -92,10 +94,14 @@ CREATE TABLE `committee` (
   `committee_description` text,
   `donations_2015` decimal(10,2) DEFAULT '0.00',
   `donations_2016` decimal(10,2) DEFAULT '0.00',
+  `donations_2017` decimal(10,2) DEFAULT '0.00',
+  `donations_in_philly` decimal(10,2) DEFAULT '0.00',
+  `donations_in_pa` decimal(10,2) DEFAULT '0.00',
+  `donations_out_pa` decimal(10,2) DEFAULT '0.00',
   PRIMARY KEY (`id`),
   UNIQUE KEY `committee_name` (`committee_name`),
   KEY `committee_slug` (`committee_slug`)
-) ENGINE=MyISAM AUTO_INCREMENT=1159 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -114,7 +120,7 @@ CREATE TABLE `contributor` (
   `name_last` varchar(64) NOT NULL DEFAULT '',
   `name_suffix` varchar(64) NOT NULL DEFAULT '',
   `name_business` varchar(255) NOT NULL DEFAULT '',
-  `slug` varchar(64) DEFAULT NULL,
+  `slug` varchar(128) DEFAULT NULL,
   `is_person` smallint(1) NOT NULL DEFAULT '0',
   `is_business` smallint(1) NOT NULL DEFAULT '0',
   `num_contributions` mediumint(8) unsigned NOT NULL DEFAULT '0',
@@ -122,13 +128,12 @@ CREATE TABLE `contributor` (
   `total_contributed_2015` decimal(12,2) DEFAULT NULL,
   `total_contributed_2016` decimal(12,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `slug` (`slug`),
   KEY `name_first` (`name_first`),
   KEY `name_last` (`name_last`),
   KEY `name_prefix` (`name_prefix`),
   KEY `name_suffix` (`name_suffix`),
   KEY `address_id` (`address_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=85944 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -160,7 +165,7 @@ CREATE TABLE `contributor_address` (
   KEY `address_type` (`address_type`),
   KEY `number` (`number`),
   KEY `street` (`street`)
-) ENGINE=MyISAM AUTO_INCREMENT=54989 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -178,7 +183,7 @@ CREATE TABLE `contributor_type` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `type_name` (`type_name`),
   KEY `type_slug` (`type_slug`)
-) ENGINE=MyISAM AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -194,7 +199,7 @@ CREATE TABLE `party` (
   `slug` varchar(32) NOT NULL,
   `party_order` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -214,7 +219,7 @@ CREATE TABLE `political_donation` (
   `filing_period_id` int(4) unsigned NOT NULL,
   `employer_name_id` int(4) unsigned NOT NULL,
   `employer_occupation_id` int(4) unsigned NOT NULL,
-  `donation_date` datetime NOT NULL,
+  `donation_date` date NOT NULL,
   `donation_amount` decimal(10,2) NOT NULL,
   `provided_name` varchar(128) NOT NULL,
   `provided_address` varchar(128) NOT NULL,
@@ -228,7 +233,7 @@ CREATE TABLE `political_donation` (
   KEY `donation_date` (`donation_date`),
   KEY `donation_amount` (`donation_amount`),
   KEY `employer_name_id` (`employer_name_id`,`employer_occupation_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=182263 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -248,7 +253,7 @@ CREATE TABLE `political_donation_contribution_type` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `type_name` (`type_name`),
   KEY `type_slug` (`type_slug`)
-) ENGINE=MyISAM AUTO_INCREMENT=29 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -266,7 +271,7 @@ CREATE TABLE `political_donation_employer_name` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `employer_name` (`employer_name`),
   KEY `employer_slug` (`employer_slug`)
-) ENGINE=MyISAM AUTO_INCREMENT=8622 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -284,7 +289,7 @@ CREATE TABLE `political_donation_employer_occupation` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `occupation_name` (`occupation_name`),
   KEY `occupation_slug` (`occupation_slug`)
-) ENGINE=MyISAM AUTO_INCREMENT=5704 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -302,7 +307,7 @@ CREATE TABLE `political_donation_filing_period` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `period_name` (`period_name`),
   KEY `period_slug` (`period_slug`)
-) ENGINE=MyISAM AUTO_INCREMENT=105 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -330,7 +335,7 @@ CREATE TABLE `race` (
   PRIMARY KEY (`id`),
   KEY `race_order` (`race_order`),
   KEY `race_name` (`race_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -342,4 +347,4 @@ CREATE TABLE `race` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-10-02 19:35:38
+-- Dump completed on 2018-05-08 10:24:04
