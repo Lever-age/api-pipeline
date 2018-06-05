@@ -63,6 +63,11 @@ For now, load the tables.sql file
 wget ftp://ftp.phila-records.com/Year-to-Date%20Transaction%20Files/2017%20YTD/Explorer.Transactions.2017.YTD.txt
 ```
 
+Note: For years prior to 2017 you can replace 2017 with the year -- but 2018 has a new file name format! Temporarily:
+```bash
+wget ftp://ftp.phila-records.com/Year-to-Date%20Transaction%20Files/2018%20YTD/2018%20YTD.txt
+mv 2018\ YTD.txt Explorer.Transactions.2018.YTD.txt 
+```
 
 
 # Import
