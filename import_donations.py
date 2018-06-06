@@ -66,10 +66,13 @@ csvreader = csv.reader(csvfile, delimiter='\t', quotechar='"')
 election_db_cache = ElectionDBCache()
 election_db_cache.load_cache()
 
-#header_row = next(csvreader)   # skip junk row (should not be first line) - 2017 hack
 header_row = next(csvreader)   # Get column names
 
-#print(header_row); sys.exit()
+# Remove weird character at beginning of file (\ufeff)
+if header_row[0].find('"') > -1:
+    header_row[0] = header_row[0][header_row[0].find('"'):].strip('"')
+
+#print(header_row);
 
 city_list = []
 
@@ -100,9 +103,11 @@ for row in csvreader:
 
     # Get dictionary of row after stripping away white space
     for i in range(len(row)):
-        row[i] = row[i].strip()
+        row[i] = row[i].replace('\ufeff', '').strip()
 
     row_dict = dict(zip(header_row, row))
+    #print(row_dict)
+    #break
 
     if row_dict['DocType'] in ignore_doc_types:
         continue
@@ -133,10 +138,16 @@ for row in csvreader:
 
     #print('donation:', donation_amount)
 
-    donation_date_obj = datetime.strptime(row_dict['SubDate'], '%m/%d/%Y')
+    donation_date_obj = datetime.strptime(row_dict['Date'], '%m/%d/%Y')
+    donation_submission_date_obj = datetime.strptime(row_dict['SubDate'], '%m/%d/%Y')
+
     #print(donation_date_obj)
 
-    committee_id = election_db_cache.return_donation_commitee_id_from_name(row_dict['FilerName'])
+    try:
+        committee_id = election_db_cache.return_donation_commitee_id_from_name(row_dict['FilerName'])
+    except Exception as e:
+        print('ERROR on line:', line_num)
+        print(row_dict)
     #print('FilerName:', row_dict['FilerName'], committee_id)
 
     contribution_type_id = election_db_cache.return_contribution_type_id_from_name(row_dict['DocType'])
@@ -498,6 +509,7 @@ for row in csvreader:
             donation.employer_occupation_id = employer_occupation_id
 
             donation.donation_date = donation_date_obj 
+            donation.donation_submission_date = donation_submission_date_obj
             donation.donation_amount = donation_amount
             donation.provided_name = row_dict['EntityName']
             donation.provided_address = row_dict['EntityAddressLine1']

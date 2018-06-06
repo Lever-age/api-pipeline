@@ -309,6 +309,7 @@ class PoliticalDonation(Base):
                                     backref='donations')
 
     donation_date = sa.Column(sa.DateTime, nullable=False, index=True)
+    donation_submission_date = sa.Column(sa.DateTime, nullable=False, index=True)
     donation_amount = sa.Column(sa.Numeric(10, 2), nullable=False, index=True)
     provided_name = sa.Column(sa.String(128), nullable=False)
     provided_address = sa.Column(sa.String(128), nullable=False)
