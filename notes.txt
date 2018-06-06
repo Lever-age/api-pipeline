@@ -1,0 +1,20 @@
+
+
+# Checking this filing:
+http://www.phila.gov/records/CampaignFinance/pdfs/2017cycle7/8800119-2017-7-200.pdf
+
+# From Cycle 7 2017 => Committee to Elect Mike Stack (1/31/2018)
+http://www.phila.gov/records/CampaignFinance/2017cycle7.html
+
+# In database
+
+# Get committee for Mike Stack
+SELECT * FROM `committee` WHERE committee_name like '%Stack%' 
+
+# Get a PAC that donated to Mike Stack
+SELECT * FROM `contributor` WHERE name_business like '%Todd Eagen For Judge%' 
+
+# Get donations from that PAC to Stack
+SELECT * FROM `political_donation` WHERE committee_id = 309 AND contributor_id = 1145 
+
+

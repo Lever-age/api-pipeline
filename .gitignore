@@ -105,3 +105,4 @@ ENV/
 .DS_Store
 app_config.py
 Explorer.Transactions.*.YTD.txt
+Explorer.Transactions.*.YTD.csv
