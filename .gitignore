@@ -104,6 +104,9 @@ ENV/
 # Leverage Additions 
 .DS_Store
 app_config.py
-Explorer.*.txt # Philly campaign finance files
+
 *.csv
 .~*#
+
+# Philly campaign finance files
+Explorer.*.txt 
