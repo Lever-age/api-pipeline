@@ -249,6 +249,11 @@ class PoliticalDonation(Base):
     )
 
     id = sa.Column(sa.Integer, primary_key=True)
+
+    hmac_signature = sa.Column(sa.String(32), nullable=False, index=True)
+    year = sa.Column(sa.String(4), nullable=False, index=True)
+    line_number = sa.Column(sa.Integer, nullable=False, index=True)
+
     is_annonymous = sa.Column(sa.Integer, nullable=False, server_default=sa.text("'0'"))
 
     #contributor_id = sa.Column(sa.Integer, nullable=False, index=True)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding: utf-8
 import os
 import sys
@@ -17,6 +17,10 @@ from database import db_session
 from models import Contributor, ContributorAddress, PoliticalDonation
 
 from db_cache import ElectionDBCache
+
+from api_functions import generate_hmac
+
+
 
 """
 
@@ -55,8 +59,6 @@ print(file_location)
 # amount_list is used to clean the amount
 amount_list = list('1234567890.,-')
 
-total_contributed = 0
-
 line_num = 1
 
 csvfile = open(file_location, 'r')
@@ -80,6 +82,11 @@ city_list = []
 ignore_doc_types = ['Campaign Finance Report (Cover Page)', 'Campaign Finance Statement', 'Failed Documents']
 
 db_session.begin()
+
+# Delete donations from this year
+sql_query = "DELETE FROM political_donation WHERE year = '{}'".format(year)
+
+results = db_session.execute(sql_query)
 
 amount_total = 0
 
@@ -116,6 +123,16 @@ for row in csvreader:
     if row_dict['Amount'] == '':
         continue
 
+    # Check if this row already imported
+    row_hmac_signature = generate_hmac(header_row, row_dict)
+    #existing_donation = db_session.query(PoliticalDonation).filter(PoliticalDonation.hmac_signature==row_hmac_signature).first()
+    #if existing_donation:
+    #    #print('Found HMAC: ', row_hmac_signature)
+    #    continue
+    #else:
+    #    print('Adding HMAC: ', row_hmac_signature)
+
+
     ###########################################
     # Custom formatting for certain values
     ###########################################
@@ -132,13 +149,20 @@ for row in csvreader:
 
 
     donation_amount = row_dict['Amount']
-    amount_total += row_dict['Amount']
+    amount_total += donation_amount
     #continue
 
 
     #print('donation:', donation_amount)
 
-    donation_date_obj = datetime.strptime(row_dict['Date'], '%m/%d/%Y')
+    try:
+
+        donation_date_obj = datetime.strptime(row_dict['Date'], '%m/%d/%Y')
+    
+    except Exception as e:
+        print('ERROR on line: {} with date: {}'.format(line_num, row_dict['Date']))
+        donation_date_obj = datetime.strptime(row_dict['SubDate'], '%m/%d/%Y')
+
     donation_submission_date_obj = datetime.strptime(row_dict['SubDate'], '%m/%d/%Y')
 
     #print(donation_date_obj)
@@ -297,7 +321,8 @@ for row in csvreader:
                 contributor_address.zipcode = postcode
 
                 db_session.add(contributor_address)        
-                #db_session.commit()
+                db_session.commit()
+                db_session.begin()
 
             contributor_address_id = contributor_address.id
 
@@ -353,7 +378,8 @@ for row in csvreader:
                 contributor_address.zipcode = postcode
 
                 db_session.add(contributor_address)        
-                #db_session.commit()
+                db_session.commit()
+                db_session.begin()
 
             contributor_address_id = contributor_address.id
 
@@ -499,6 +525,9 @@ for row in csvreader:
         try:
 
             donation = PoliticalDonation()
+            donation.year = year
+            donation.line_number = line_num
+            donation.hmac_signature = row_hmac_signature
             donation.is_annonymous = is_annonymous
             donation.contributor_id = contributor_id
             donation.contributor_type_id = contributor_type_id
@@ -517,6 +546,7 @@ for row in csvreader:
 
             db_session.add(donation)        
             #db_session.commit()
+            #db_session.begin()
 
         except Exception as e:
             print("Error saving PoliticalDonation:", e)
@@ -537,5 +567,5 @@ except Exception as e:
     pass
 
 
-print('amount_total:', amount_total)
+print('amount_total:', round(amount_total, 2))
 
