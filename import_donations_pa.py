@@ -22,6 +22,8 @@ from api_functions import generate_hmac
 
 
 
+
+
 """
 
 TRUNCATE contributor;
@@ -47,66 +49,91 @@ TRUNCATE political_donation_employer_occupation;
 
 """
 
+reported_by = 'Pennsylvania'
+
 year = int(sys.argv[1]) if len(sys.argv) > 1 else datetime.now().year
 
 #csv_dir = os.path.dirname(os.path.realpath(__file__))
-csv_dir = '/mnt/hgfs/OSX_124/campaign_finance/Philly/'
+csv_dir = '/mnt/hgfs/OSX_124/campaign_finance/PA_state/'
 
-file_location = csv_dir+'Explorer.Transactions.{}.YTD.txt'.format(str(year))
+file_location = csv_dir+'{}/contrib_{}.txt'.format(year, year)
 
 print(file_location)
 
 # amount_list is used to clean the amount
 amount_list = list('1234567890.,-')
 
-line_num = 1
+line_num = 0
 
 csvfile = open(file_location, 'r')
 
-csvreader = csv.reader(csvfile, delimiter='\t', quotechar='"')
+csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
 
 election_db_cache = ElectionDBCache()
 election_db_cache.load_cache()
 
-header_row = next(csvreader)   # Get column names
+#header_row = next(csvreader)   # Get column names
+header_row = ['Filer Identification Number', 'Election Year', 'Election Cycle', 'Section', 'Contributor', 'Contributor Address 1', 'Contributor Address 2', 'Contributor City', 'Contributor State', 'Contributor Zip Code', 'Occupation', 'Employer Name', 'Employer Address 1', 'Employer Address 2', 'Employer State', 'Employer City', 'Employer Zip Code', 'Contribution Date', 'Contribution Amount', 'Contribution Description', 'Contributor Location 1', 'Contributor Location 2', 'Employer Location 1', 'Employer Location 2']
 
 # Remove weird character at beginning of file (\ufeff)
-if header_row[0].find('"') > -1:
-    header_row[0] = header_row[0][header_row[0].find('"'):].strip('"')
+#if header_row[0].find('"') > -1:
+#    header_row[0] = header_row[0][header_row[0].find('"'):].strip('"')
 
 #print(header_row);
 
 #ignore_contribution_types = ['Independent Expenditure', 'Campaign Finance Report (Cover Page)', 'Campaign Finance Statement']
-ignore_contribution_types = ['Campaign Finance Report (Cover Page)', 'Campaign Finance Statement', 'Failed Documents']
+#ignore_contribution_types = ['Campaign Finance Report (Cover Page)', 'Campaign Finance Statement', 'Failed Documents']
+ignore_contribution_types = []
 
 db_session.begin()
 
 # Delete donations from this year
-sql_query = "DELETE FROM political_donation WHERE year = '{}'".format(year)
-
+# 
+sql_query = "DELETE d.* FROM `political_donation` d JOIN `committee` c ON d.committee_id = c.id\
+    WHERE c.reported_by = '{}' AND d.year = '{}'".format(reported_by, year)
 results = db_session.execute(sql_query)
 
 amount_total = 0
 
-committee_name_field = 'FilerName'
-donation_date_field = 'Date'
-donation_date_field_format = '%m/%d/%Y'
-submission_date_field = 'SubDate'
-submission_date_field_format = '%m/%d/%Y'
-donation_amount_field = 'Amount'
-zip_code_field = 'EntityZip'
-contribution_type_field = 'DocType'
+skip_lines = 290000
 
-filing_period_field = 'Cycle'
-employer_name_field = 'EmployerName'
+"""
+
+
+Employer Address 1
+Employer Address 2
+Employer State
+Employer City
+Employer Zip Code
+Contribution Description
+Contributor Location 1
+Contributor Location 2
+Employer Location 1
+Employer Location 2
+"""
+
+
+committee_name_field = ''
+committee_id_field = 'Filer Identification Number'
+donation_date_field = 'Contribution Date'
+donation_date_field_format = '%Y%m%d'
+submission_date_field = 'Contribution Date'
+submission_date_field_format = '%Y%m%d'
+donation_amount_field = 'Contribution Amount'
+zip_code_field = 'Contributor Zip Code'
+contribution_type_field = 'Section'
+
+filing_year_field = 'Election Year'
+filing_period_field = 'Election Cycle'
+employer_name_field = 'Employer Name'
 employer_occupation_field = 'Occupation'
-ammended_field = 'Amended'
-contributor_name_field = 'EntityName'
+ammended_field = ''
+contributor_name_field = 'Contributor'
 
-contributor_address1_field = 'EntityAddressLine1'
-contributor_address2_field = 'EntityAddressLine2'
-contributor_state_field = 'EntityState'
-contributor_city_field = 'EntityCity'
+contributor_address1_field = 'Contributor Address 1'
+contributor_address2_field = 'Contributor Address 2'
+contributor_state_field = 'Contributor State'
+contributor_city_field = 'Contributor City'
 
 
 
@@ -115,6 +142,9 @@ for row in csvreader:
 
     line_num += 1
 
+    if line_num < skip_lines:
+        continue
+
     #if line_num % 10 == 0:
     #    print('line:', line_num)
 
@@ -122,7 +152,7 @@ for row in csvreader:
     #    break
 
     if len(row) != len(header_row):
-        print("ERROR: ", line_num, len(row), row)
+        print('ERROR: Line {}, expected {} columns, received {}. {}'.format(line_num, len(header_row), len(row), row))
         continue
 
     #for i in range(len(row)):
@@ -178,22 +208,26 @@ for row in csvreader:
     #print('donation:', donation_amount)
 
 
+    if len(row_dict[donation_date_field]) == 8:
+
+        try:
+
+            donation_date_obj = datetime.strptime(row_dict[donation_date_field], donation_date_field_format)
+        
+        except Exception as e:
+            print('ERROR on line: {} with date: {}'.format(line_num, row_dict[donation_date_field]))
+            donation_date_obj = datetime.strptime(row_dict[submission_date_field], submission_date_field_format)
+
+        donation_submission_date_obj = datetime.strptime(row_dict[submission_date_field], submission_date_field_format)
+
+        #print(donation_date_obj)
+
+    else:
+        donation_date_obj = donation_submission_date_obj = datetime(1980, 1, 1)
+
+
     try:
-
-        donation_date_obj = datetime.strptime(row_dict[donation_date_field], donation_date_field_format)
-    
-    except Exception as e:
-        print('ERROR on line: {} with date: {}'.format(line_num, row_dict[donation_date_field]))
-        donation_date_obj = datetime.strptime(row_dict[submission_date_field], submission_date_field_format)
-
-    donation_submission_date_obj = datetime.strptime(row_dict[submission_date_field], submission_date_field_format)
-
-    #print(donation_date_obj)
-
-
-
-    try:
-        committee_id = election_db_cache.return_donation_commitee_id_from_name(row_dict[committee_name_field])
+        committee_id = election_db_cache.return_donation_commitee_id_from_reported_id_and_reported_by(row_dict[committee_id_field], reported_by)
     except Exception as e:
         print('ERROR on line:', line_num)
         print(row_dict)
@@ -207,7 +241,8 @@ for row in csvreader:
     contributor_type_id = 0
 
 
-    filing_period_id = election_db_cache.return_filing_period_id_from_name(row_dict[filing_period_field])
+    filing_period_id = election_db_cache.return_filing_period_id_from_name(
+        '{}-{}'.format(row_dict[filing_year_field], row_dict[filing_period_field]))
     #print('Cycle:', row_dict['Cycle'], filing_period_id)
 
     employer_name_id = 0

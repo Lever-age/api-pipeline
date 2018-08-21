@@ -18,3 +18,16 @@ SELECT * FROM `contributor` WHERE name_business like '%Todd Eagen For Judge%'
 SELECT * FROM `political_donation` WHERE committee_id = 309 AND contributor_id = 1145 
 
 
+## Unknown Candidates:
+US Congress, 4th district:
+Madeleine Dean (D) 
+
+US Congress, 18th district:
+No Republican?
+
+### Research and update for fec_id!
+
+
+## Get first 100 lines of a file into a new file
+head -n 10 file.txt > newfile.txt
+

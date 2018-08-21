@@ -8,6 +8,7 @@ from models import Candidate, Candidacy, Committee, ContributorAddress, Contribu
 from models import Party, PoliticalDonation, PoliticalDonationContributionType, PoliticalDonationEmployerName
 from models import PoliticalDonationEmployerOccupation, PoliticalDonationFilingPeriod, Race, State
 
+"""
 def return_donation_commitee_id_from_name(name):
 
     try:
@@ -19,6 +20,48 @@ def return_donation_commitee_id_from_name(name):
 
         committee = Committee()
         committee.committee_name = name
+
+        db_session.add(committee)        
+        db_session.commit()
+        db_session.begin()
+
+    return committee.id
+"""
+
+def return_donation_commitee_id_from_name_and_reported_by(name, reported_by):
+
+    try:
+
+        committee = db_session.query(Committee)\
+            .filter(Committee.committee_name == name)\
+            .filter(Committee.reported_by == reported_by).one()
+
+    except Exception as e:
+
+        committee = Committee()
+        committee.committee_name = name
+        committee.reported_by = reported_by
+
+        db_session.add(committee)        
+        db_session.commit()
+        db_session.begin()
+
+    return committee.id
+
+
+def return_donation_commitee_id_from_reported_id_and_reported_by(reported_id, reported_by):
+
+    try:
+
+        committee = db_session.query(Committee)\
+            .filter(Committee.reported_id == reported_id)\
+            .filter(Committee.reported_by == reported_by).first()
+
+    except Exception as e:
+
+        committee = Committee()
+        committee.reported_id = reported_id
+        committee.reported_by = reported_by
 
         db_session.add(committee)        
         db_session.commit()
@@ -214,7 +257,7 @@ class ElectionDBCache:
         self.races = {}
         races = db_session.query(Race)
         for c in races:
-            index = ''.join(re.findall('([a-z0-9])', c.race_name.lower()+c.race_district))
+            index = ''.join(re.findall('([a-z0-9])', c.race_name.lower()+str(c.race_district)))
             if index not in self.races:
                 self.races[index] = {}
             self.races[index] = c.id
@@ -235,12 +278,27 @@ class ElectionDBCache:
 
 
 
-
+    """
     def return_donation_commitee_id_from_name(self, name):
         index = ''.join(re.findall('([a-z0-9])', name.lower()))
         if index not in self.donation_committees:
             self.donation_committees[index] = return_donation_commitee_id_from_name(name)
         return self.donation_committees[index]
+    """
+
+
+    def return_donation_commitee_id_from_name_and_reported_by(self, name, reported_by):
+        index = ''.join(re.findall('([a-z0-9])', name.lower()+reported_by.lower()))
+        if index not in self.donation_committees:
+            self.donation_committees[index] = return_donation_commitee_id_from_name_and_reported_by(name, reported_by)
+        return self.donation_committees[index]
+
+    def return_donation_commitee_id_from_reported_id_and_reported_by(self, reported_id, reported_by):
+        index = ''.join(re.findall('([a-z0-9])', reported_id.lower()+reported_by.lower()))
+        if index not in self.donation_committees:
+            self.donation_committees[index] = return_donation_commitee_id_from_reported_id_and_reported_by(reported_id, reported_by)
+        return self.donation_committees[index]
+
 
 
     def return_contribution_type_id_from_name(self, name):

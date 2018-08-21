@@ -117,6 +117,8 @@ class Committee(Base):
     
     #candidate_id = sa.Column(sa.Integer, nullable=False, server_default=sa.text("'0'"))
     #is_candidates = sa.Column(sa.Integer, nullable=False, server_default=sa.text("'0'"))
+    reported_by = sa.Column(sa.String(64), nullable=False)
+    reported_id = sa.Column(sa.String(32), nullable=False)
 
     committee_name = sa.Column(sa.String(128), nullable=False, unique=True)
     committee_slug = sa.Column(sa.String(128), index=True)
@@ -153,10 +155,10 @@ class ContributorAddress(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     address_type = sa.Column(sa.String(64), nullable=False, index=True, server_default=sa.text("''"))
-    number = sa.Column(sa.String(16), nullable=False, index=True, server_default=sa.text("''"))
-    street = sa.Column(sa.String(64), nullable=False, index=True, server_default=sa.text("''"))
-    addr1 = sa.Column(sa.String(128), nullable=False, index=True, server_default=sa.text("''"))
-    addr2 = sa.Column(sa.String(128), nullable=False, server_default=sa.text("''"))
+    number = sa.Column(sa.String(128), nullable=False, index=True, server_default=sa.text("''"))
+    street = sa.Column(sa.String(255), nullable=False, index=True, server_default=sa.text("''"))
+    addr1 = sa.Column(sa.String(255), nullable=False, index=True, server_default=sa.text("''"))
+    addr2 = sa.Column(sa.String(255), nullable=False, server_default=sa.text("''"))
     po_box = sa.Column(sa.String(16), nullable=False, server_default=sa.text("''"))
     city = sa.Column(sa.String(64), nullable=False, server_default=sa.text("''"))
     state = sa.Column(sa.String(32), nullable=False, server_default=sa.text("''"))
@@ -317,7 +319,7 @@ class PoliticalDonation(Base):
     donation_submission_date = sa.Column(sa.DateTime, nullable=False, index=True)
     donation_amount = sa.Column(sa.Numeric(10, 2), nullable=False, index=True)
     provided_name = sa.Column(sa.String(128), nullable=False)
-    provided_address = sa.Column(sa.String(128), nullable=False)
+    provided_address = sa.Column(sa.String(255), nullable=False)
     is_fixed_asset = sa.Column(sa.Integer, nullable=False)
 
 
@@ -345,7 +347,7 @@ class PoliticalDonationEmployerOccupation(Base):
     __tablename__ = 'political_donation_employer_occupation'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    occupation_name = sa.Column(sa.String(64), nullable=False, unique=True)
+    occupation_name = sa.Column(sa.String(255), nullable=False, unique=True)
     occupation_slug = sa.Column(sa.String(32), nullable=False, index=True, server_default=sa.text("''"))
     occupation_description = sa.Column(sa.Text)
 
@@ -396,3 +398,79 @@ class State(Base):
     state = sa.Column(sa.Text)
     fips_code = sa.Column(sa.String(2))
 
+
+class VotesmartCandidate(Base):
+    __tablename__ = 'votesmart_candidates'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    votesmart_candidate_id = sa.Column(sa.String(12), nullable=False)
+    crp_id = sa.Column(sa.String(12), nullable=False)
+    fec_id = sa.Column(sa.String(12), nullable=False)
+    nimsp_candidate_id = sa.Column(sa.String(12), nullable=False)
+    nimsp_entity_id = sa.Column(sa.String(12), nullable=False)
+    firstname = sa.Column(sa.String(64), nullable=False)
+    nickname = sa.Column(sa.String(64), nullable=False)
+    middlename = sa.Column(sa.String(64), nullable=False)
+    lastname = sa.Column(sa.String(64), nullable=False)
+    suffix = sa.Column(sa.String(64), nullable=False)
+    office_state_id = sa.Column(sa.String(2), nullable=False)
+    election_state_id = sa.Column(sa.String(2), nullable=False)
+
+
+
+class RawHtml(Base):
+    __tablename__ = 'raw_html'
+    
+    id = sa.Column(sa.Integer, primary_key=True)
+    is_imported = sa.Column(sa.Integer, index=True, server_default=sa.text("'0'"))
+    page = sa.Column(sa.Integer, nullable=False)
+    url = sa.Column(sa.String(255), nullable=False)
+    html = sa.Column(sa.Text(), nullable=False)
+
+
+
+class PaCandidates(Base):
+    __tablename__ = 'pa_candidates'
+    
+    id = sa.Column(sa.Integer, primary_key=True)
+    year = sa.Column(sa.String(4), nullable=False, index=True)
+
+    name = sa.Column(sa.String(255), nullable=False)
+    detail_url = sa.Column(sa.String(255), nullable=False)
+    office = sa.Column(sa.String(255), nullable=False)
+    district = sa.Column(sa.String(255), nullable=False)
+    party = sa.Column(sa.String(255), nullable=False)
+    municipality = sa.Column(sa.String(255), nullable=False)
+    county = sa.Column(sa.String(255), nullable=False)
+    won_primary = sa.Column(sa.Integer, nullable=False)
+    won_general = sa.Column(sa.Integer, nullable=False)
+    objection_url = sa.Column(sa.String(255), nullable=False)
+    petition_url = sa.Column(sa.String(255), nullable=False)
+    cfreport_url = sa.Column(sa.String(255), nullable=False)
+    committee_url = sa.Column(sa.String(255), nullable=False)
+    details_scraped_html = sa.Column(sa.Text(), nullable=False)
+
+
+
+
+"""
+CREATE TABLE `pa_candidates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `year` year NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `detail_url` varchar(255) NOT NULL,
+  `office` varchar(255) NOT NULL,
+  `district` varchar(255) NOT NULL,
+  `party` varchar(255) NOT NULL,
+  `municipality` varchar(255) NOT NULL,
+  `county` varchar(255) NOT NULL,
+  `won_primary` int(4) NOT NULL,
+  `won_general` int(4) NOT NULL,
+  `objection_url` varchar(255) NOT NULL,
+  `petition_url` varchar(255) NOT NULL,
+  `cfreport_url` varchar(255) NOT NULL,
+  `committee_url` varchar(255) NOT NULL,
+  `details_scraped_html` TEXT NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+"""
