@@ -4,7 +4,7 @@
 import sqlalchemy as sa
 
 from sqlalchemy.orm import synonym
-from sqlalchemy.dialects.mysql import ENUM, YEAR
+from sqlalchemy.dialects.mysql import YEAR
 
 from database import Base, db_session as session
 
@@ -67,11 +67,11 @@ class Candidacy(Base):
                                     remote_side='Party.id',
                                     backref='candidacies')
 
-    candidacy_type = sa.Column(ENUM(u'incumbent', u'challenger'), nullable=False, index=True)
+    candidacy_type = sa.Column(sa.Enum(u'incumbent', u'challenger'), nullable=False, index=True)
     candidacy_order = sa.Column(sa.Integer, nullable=False, server_default=sa.text("'0'"))
     slug = sa.Column(sa.String(64), nullable=False)
 
-    outcome = sa.Column(ENUM(u'won', u'lost'), nullable=False)
+    outcome = sa.Column(sa.Enum(u'won', u'lost', u'upcoming'), nullable=False)
 
     def __repr__(self):
         return '<Candidacy %r %r, (%r %r)>' % (self.candidate.name_first, 
@@ -365,10 +365,10 @@ class Race(Base):
     __tablename__ = 'race'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    election_type = sa.Column(ENUM(u'primary', u'general'), nullable=False)
+    election_type = sa.Column(sa.Enum(u'primary', u'general'), nullable=False)
     election_year = sa.Column(YEAR(4), nullable=False)
     election_date = sa.Column(sa.Integer, nullable=False)
-    seat_status = sa.Column(ENUM(u'filled', u'open seat', u'retired'), nullable=False)
+    seat_status = sa.Column(sa.Enum(u'filled', u'open seat', u'retired'), nullable=False)
     race_order = sa.Column(sa.Integer, nullable=False, index=True, server_default=sa.text("'0'"))
     race_name = sa.Column(sa.String(64), nullable=False, index=True)
     race_district = sa.Column(sa.Integer, nullable=False, server_default=sa.text("'0'"))
@@ -426,6 +426,44 @@ class RawHtml(Base):
     page = sa.Column(sa.Integer, nullable=False)
     url = sa.Column(sa.String(255), nullable=False)
     html = sa.Column(sa.Text(), nullable=False)
+
+
+class OpenAddress(Base):
+    __tablename__ = 'open_addresses'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    number = sa.Column(sa.String(16), nullable=False, index=True)
+    street = sa.Column(sa.String(64), nullable=False, index=True)
+    zipcode = sa.Column(sa.Integer, nullable=False, index=True)
+    libpostal_address = sa.Column(sa.String(164), nullable=False, index=True)
+    longitude = sa.Column(sa.Numeric(12, 8), nullable=False)
+    latitude = sa.Column(sa.Numeric(12, 8), nullable=False)
+
+
+class ContributorAddressCicero(Base):
+    __tablename__ = 'contributor_address_cicero'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    contributor_address_id = sa.Column(sa.Integer, nullable=False, index=True, server_default=sa.text("'0'"))
+    contributor_address = sa.orm.relationship('ContributorAddress', 
+                                    primaryjoin='ContributorAddressCicero.contributor_address_id==ContributorAddress.id',
+                                    foreign_keys='ContributorAddressCicero.contributor_address_id',
+                                    remote_side='ContributorAddress.id',
+                                    backref='cicero_result')
+
+    sent_address  = sa.Column(sa.String(255), nullable=False, index=True)
+    cicero_response = sa.Column(sa.Text(), nullable=False)
+
+
+class ZipcodeCicero(Base):
+    __tablename__ = 'zipcode_cicero'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    zipcode  = sa.Column(sa.String(5), nullable=False, index=True)
+    cicero_response = sa.Column(sa.Text(), nullable=False)
+
 
 
 

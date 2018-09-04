@@ -1,10 +1,69 @@
 
 
+# Bad characters throwing off CSV import: ÿ
+
+
 # Checking this filing:
 http://www.phila.gov/records/CampaignFinance/pdfs/2017cycle7/8800119-2017-7-200.pdf
 
 # From Cycle 7 2017 => Committee to Elect Mike Stack (1/31/2018)
 http://www.phila.gov/records/CampaignFinance/2017cycle7.html
+
+
+
+# Contribution addresses from Philly:
+SELECT * FROM `contributor_address` WHERE city = 'philadelphia' and state = 'pa' 
+
+
+# Candidates for Governor
+SELECT cand.* FROM `candidate` cand, `candidacy` c WHERE cand.id = c.candidate_id AND c.race_id = 2
+
+# Committees for Governor
+SELECT comm.* FROM `candidate` cand, `candidacy` c, `committee` comm, candidate_committees cand_comm
+WHERE cand.id = c.candidate_id 
+    AND cand.id = cand_comm.candidate_id 
+    AND comm.id = cand_comm.committee_id
+    AND c.race_id = 2
+# -- SCOTT WAGNER: 3561
+# -- Tom Wolf: 4142
+
+
+# Contributions to Governor race
+SELECT * FROM `political_donation` d WHERE committee_id IN (3561, 4142)
+
+
+# Contributions to any listed candidate
+SELECT d.* FROM `political_donation` d, candidate_committees cand_comm WHERE d.committee_id = cand_comm.committee_id
+
+# Contributions to any listed candidate
+SELECT d.* FROM `political_donation` d, candidate_committees cand_comm WHERE d.committee_id = cand_comm.committee_id
+
+# Contributions from PA to any listed candidate
+SELECT d.* FROM `political_donation` d, candidate_committees cand_comm, contributor c, `contributor_address` a
+WHERE d.committee_id = cand_comm.committee_id
+    AND d.contributor_id = c.id
+    AND c.address_id = a.id
+    AND a.state = 'pa' 
+
+# Addresses from PA that donated to any listed candidate
+SELECT a.* FROM `political_donation` d, candidate_committees cand_comm, contributor c, `contributor_address` a
+WHERE d.committee_id = cand_comm.committee_id
+    AND d.contributor_id = c.id
+    AND c.address_id = a.id
+    AND a.state = 'pa' 
+
+
+# Matching libpostal addresses
+SELECT a.id, concat(a.addr1, ' ', a.zipcode) 
+FROM `contributor_address` a,  open_addresses o
+WHERE a.city = 'philadelphia' 
+    AND a.state = 'pa'
+    AND concat(a.addr1, ' ', a.zipcode) = o.`libpostal_address`
+
+SELECT * FROM `open_addresses` WHERE `libpostal_address` in (SELECT concat(addr1, ' ', zipcode) FROM `contributor_address` WHERE city = 'philadelphia' and state = 'pa' )
+
+
+
 
 # In database
 
