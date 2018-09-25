@@ -44,20 +44,22 @@ source venv/bin/activate
 
 
 
-## Importing Steps
+# Importing Steps
 
-### Clone
+## Clone
 
 ``` bash
 git clone git@github.com:Lever-age/api-pipeline.git
 cd api-pipeline
 ```
 
-### Create a database.
+## Create a database.
 
 For now, load the tables.sql file
 
-### Download files
+## Download Files:
+
+### Download Philadelphia files
 
 ```bash
 wget ftp://ftp.phila-records.com/Year-to-Date%20Transaction%20Files/2017%20YTD/Explorer.Transactions.2017.YTD.txt
@@ -69,10 +71,23 @@ wget ftp://ftp.phila-records.com/Year-to-Date%20Transaction%20Files/2018%20YTD/2
 mv 2018\ YTD.txt Explorer.Transactions.2018.YTD.txt 
 ```
 
-
-# Import
+#### Import
 ```bash
-import.py
+import_donations_philly.py
+```
+
+
+### Download PA files
+
+Download files from the state's website: [www.dos.pa.gov](https://www.dos.pa.gov/VotingElections/CandidatesCommittees/CampaignFinance/Resources/Pages/FullCampaignFinanceExport.aspx)
+
+
+Extract into directories by year. You need to import the committees that filed first.
+
+#### Import
+```bash
+import_donations_pa_filers.py
+import_donations_pa.py
 ```
 
 ## Troubleshooting
